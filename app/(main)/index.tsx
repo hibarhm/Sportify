@@ -8,13 +8,17 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f8f9fa' }} edges={['top']}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* HEADER */}
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* HEADER - ONLY LOGO + SIGN IN */}
         <View style={styles.header}>
           <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
-          <Text style={styles.headerTitle}>Home</Text>
-          <View style={{ width: 40 }} />
+
+          {/* SIGN IN BUTTON - TOP RIGHT */}
+          <TouchableOpacity onPress={() => router.push('/register')} style={styles.signInButton}>
+            <Feather name="log-in" size={22} color="#007AFF" />
+            <Text style={styles.signInText}>Sign In</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Top Live Matches */}
@@ -40,7 +44,7 @@ export default function Home() {
           <View style={styles.sideCard} />
         </View>
 
-        {/* Latest News - WITH BLUE ARROW ON RIGHT */}
+        {/* Latest News */}
         <View style={styles.newsHeader}>
           <Text style={styles.sectionTitle}>Latest News</Text>
           <TouchableOpacity onPress={() => router.push('/news-screen')}>
@@ -48,7 +52,6 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        {/* News Preview Card */}
         <View style={styles.newsCard}>
           <Image source={require('../../assets/images/icon.png')} style={styles.newsImage} />
           <View style={styles.newsContent}>
@@ -82,72 +85,43 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
+  scrollView: { flex: 1 },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
   },
-  logo: { width: 40, height: 40, borderRadius: 20 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#000' },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 20, marginTop: 20, marginBottom: 10 },
-
-  // Header with arrow for Latest News
-  newsHeader: {
+  logo: { width: 50, height: 50, borderRadius: 25 },
+  signInButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-
-  liveContainer: { flexDirection: 'row', paddingHorizontal: 20, gap: 15 },
-  liveCard: {
-    width: 240,
-    height: 160,
-    justifyContent: 'space-between',
-    padding: 15,
-    backgroundColor: '#007AFF',
-  },
-  liveBadge: {
-    backgroundColor: '#ff3b30',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
-    alignSelf: 'flex-start',
+    gap: 6,
   },
+  signInText: { color: '#007AFF', fontWeight: '600', fontSize: 15 },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 20, marginTop: 20, marginBottom: 10, color: '#000' },
+  newsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 20 },
+  liveContainer: { flexDirection: 'row', paddingHorizontal: 20, gap: 15 },
+  liveCard: { width: 240, height: 160, justifyContent: 'space-between', padding: 15, backgroundColor: '#007AFF' },
+  liveBadge: { backgroundColor: '#ff3b30', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, alignSelf: 'flex-start' },
   liveText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
   scoreContainer: { alignItems: 'center' },
   team: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   score: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
-  watchButton: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-    alignSelf: 'center',
-  },
+  watchButton: { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25, alignSelf: 'center' },
   watchText: { color: '#007AFF', fontWeight: 'bold' },
   sideCard: { width: 100, height: 160, backgroundColor: '#ddd', borderRadius: 16 },
-  newsCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 15,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
+  newsCard: { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 20, marginBottom: 15, borderRadius: 16, overflow: 'hidden' },
   newsImage: { width: 100, height: 100 },
   newsContent: { flex: 1, padding: 15, justifyContent: 'center' },
   sportTag: { color: '#007AFF', fontWeight: 'bold', fontSize: 12 },
-  newsTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 5 },
-  categories: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 40,
-    marginTop: 10,
-  },
-  category: { alignItems: 'center' },
-  categoryText: { marginTop: 8, fontWeight: '600' },
+  newsTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 5, color: '#000' },
+  categories: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, marginTop: 10 },
+  category: { alignItems: 'center', backgroundColor: '#fff', padding: 20, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5 },
+  categoryText: { marginTop: 8, fontWeight: '600', color: '#000' },
 });
