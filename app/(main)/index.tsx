@@ -1,23 +1,73 @@
-// app/(main)/index.tsx
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ImageBackground, Image } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+
+// APIs Used
+const UPCOMING_API =
+  "https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4328"; // Premier League
+const SPORTS_API =
+  "https://www.thesportsdb.com/api/v1/json/3/all_sports.php";
 
 export default function Home() {
   const router = useRouter();
 
+  const [upcomingMatches, setUpcomingMatches] = useState([]);
+  const [sports, setSports] = useState([]);
+  const [loadingMatches, setLoadingMatches] = useState(true);
+  const [loadingSports, setLoadingSports] = useState(true);
+
+  // Fetch upcoming matches
+  const fetchUpcoming = async () => {
+    try {
+      const res = await fetch(UPCOMING_API);
+      const data = await res.json();
+      setUpcomingMatches(data.events || []);
+    } catch (err) {
+      console.log("❌ Error fetching matches:", err);
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
+  // Fetch sports list
+  const fetchSports = async () => {
+    try {
+      const res = await fetch(SPORTS_API);
+      const data = await res.json();
+      setSports(data.sports || []);
+    } catch (err) {
+      console.log("❌ Error fetching sports:", err);
+    } finally {
+      setLoadingSports(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUpcoming();
+    fetchSports();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* HEADER - ONLY LOGO + SIGN IN */}
+        
+        {/* HEADER */}
         <View style={styles.header}>
           <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
 
-          {/* SIGN IN BUTTON - TOP RIGHT */}
-          <TouchableOpacity onPress={() => router.push('/register')} style={styles.signInButton}>
-            <Feather name="log-in" size={22} color="#007AFF" />
-            <Text style={styles.signInText}>Sign In</Text>
+          <TouchableOpacity onPress={() => router.push('/profile')} style={styles.profileCircle}>
+            <Text style={styles.profileInitial}>J</Text>
           </TouchableOpacity>
         </View>
 
@@ -44,7 +94,41 @@ export default function Home() {
           <View style={styles.sideCard} />
         </View>
 
-        {/* Latest News */}
+        {/* UPCOMING MATCHES */}
+        <View style={styles.newsHeader}>
+          <Text style={styles.sectionTitle}>Upcoming Matches</Text>
+          <TouchableOpacity onPress={() => router.push('/upcoming-matches')}>
+            <Feather name="arrow-right" size={26} color="#007AFF" />
+          </TouchableOpacity>
+        </View>
+
+        {loadingMatches ? (
+          <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+        ) : (
+          <View style={styles.upcomingContainer}>
+            {upcomingMatches.slice(0, 5).map((match: any, i) => (
+              <View key={i} style={styles.upcomingCard}>
+                <View style={styles.matchHeader}>
+                  <Text style={styles.leagueTag}>{match.strLeague}</Text>
+                  <Text style={styles.time}>{match.dateEvent} {match.strTime}</Text>
+                </View>
+
+                <View style={styles.teamsContainer}>
+                  <Text style={styles.teamName}>{match.strHomeTeam}</Text>
+                  <Text style={styles.vs}>VS</Text>
+                  <Text style={styles.teamName}>{match.strAwayTeam}</Text>
+                </View>
+
+                <View style={styles.venueContainer}>
+                  <Feather name="map-pin" size={14} color="#666" />
+                  <Text style={styles.venue}>{match.strVenue}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* NEWS SECTION */}
         <View style={styles.newsHeader}>
           <Text style={styles.sectionTitle}>Latest News</Text>
           <TouchableOpacity onPress={() => router.push('/news-screen')}>
@@ -56,33 +140,35 @@ export default function Home() {
           <Image source={require('../../assets/images/icon.png')} style={styles.newsImage} />
           <View style={styles.newsContent}>
             <Text style={styles.sportTag}>Football</Text>
-            <Text style={styles.newsTitle}>Top Scorers in Premier League: Race Heats Up</Text>
+            <Text style={styles.newsTitle}>Premier League action continues this week...</Text>
           </View>
         </View>
 
-        {/* Sports Categories */}
+        {/* SPORTS CATEGORIES */}
         <Text style={styles.sectionTitle}>Sports Categories</Text>
-        <View style={styles.categories}>
-          <TouchableOpacity style={styles.category}>
-            <Feather name="youtube" size={32} color="#007AFF" />
-            <Text style={styles.categoryText}>Football</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.category}>
-            <Feather name="grid" size={32} color="#007AFF" />
-            <Text style={styles.categoryText}>Cricket</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.category}>
-            <Feather name="shuffle" size={32} color="#007AFF" />
-            <Text style={styles.categoryText}>Basketball</Text>
-          </TouchableOpacity>
-        </View>
 
-        <View style={{ height: 100 }} />
+        {loadingSports ? (
+          <ActivityIndicator size="large" color="#007AFF" />
+        ) : (
+          <View style={styles.categories}>
+            {sports.slice(0, 3).map((sport: any, index) => (
+              <TouchableOpacity key={index} style={styles.category}>
+                <Feather name="grid" size={32} color="#007AFF" />
+                <Text style={styles.categoryText}>{sport.strSport}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        <View style={{ height: 50 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+///////////////////////////////////////////////////////////////////
+// STYLES (same as yours)
+///////////////////////////////////////////////////////////////////
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   scrollView: { flex: 1 },
@@ -94,34 +180,149 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   logo: { width: 50, height: 50, borderRadius: 25 },
-  signInButton: {
-    flexDirection: 'row',
+  profileCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
+    borderWidth: 2,
+    borderColor: '#fff',
   },
-  signInText: { color: '#007AFF', fontWeight: '600', fontSize: 15 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 20, marginTop: 20, marginBottom: 10, color: '#000' },
-  newsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 20 },
+  profileInitial: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 20,
+    marginTop: 20,
+    marginBottom: 10,
+    color: '#000',
+  },
   liveContainer: { flexDirection: 'row', paddingHorizontal: 20, gap: 15 },
-  liveCard: { width: 240, height: 160, justifyContent: 'space-between', padding: 15, backgroundColor: '#007AFF' },
-  liveBadge: { backgroundColor: '#ff3b30', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, alignSelf: 'flex-start' },
+  liveCard: {
+    width: 240,
+    height: 160,
+    justifyContent: 'space-between',
+    padding: 15,
+    backgroundColor: '#007AFF',
+  },
+  liveBadge: {
+    backgroundColor: '#ff3b30',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
   liveText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
   scoreContainer: { alignItems: 'center' },
   team: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   score: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
-  watchButton: { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25, alignSelf: 'center' },
+  watchButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    alignSelf: 'center',
+  },
   watchText: { color: '#007AFF', fontWeight: 'bold' },
   sideCard: { width: 100, height: 160, backgroundColor: '#ddd', borderRadius: 16 },
-  newsCard: { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 20, marginBottom: 15, borderRadius: 16, overflow: 'hidden' },
+  newsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+
+  // Upcoming
+  upcomingContainer: { paddingHorizontal: 20, gap: 12 },
+  upcomingCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  matchHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  leagueTag: {
+    backgroundColor: '#007AFF',
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  time: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '600',
+  },
+  teamsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  teamName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    flex: 1,
+    textAlign: 'center',
+  },
+  vs: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: 'bold',
+    marginHorizontal: 8,
+  },
+  venueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  venue: { fontSize: 13, color: '#666' },
+
+  // News
+  newsCard: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginBottom: 15,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
   newsImage: { width: 100, height: 100 },
   newsContent: { flex: 1, padding: 15, justifyContent: 'center' },
   sportTag: { color: '#007AFF', fontWeight: 'bold', fontSize: 12 },
   newsTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 5, color: '#000' },
-  categories: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, marginTop: 10 },
-  category: { alignItems: 'center', backgroundColor: '#fff', padding: 20, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5 },
+
+  // Categories
+  categories: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 40,
+    marginTop: 10,
+  },
+  category: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
   categoryText: { marginTop: 8, fontWeight: '600', color: '#000' },
 });

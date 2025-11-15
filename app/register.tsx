@@ -11,11 +11,9 @@ export default function Register() {
       {/* SPACER FROM TOP */}
       <View style={{ height: 80 }} />
 
-      {/* BACK ARROW + TITLE — MOVED DOWN */}
+      {/* TITLE ONLY — NO BACK ARROW */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(main)')}>
-          <Feather name="arrow-left" size={28} color="#000" />
-        </TouchableOpacity>
+        <View style={{ width: 28 }} /> {/* Spacer for centering */}
         <Text style={styles.title}>Registration</Text>
         <View style={{ width: 28 }} />
       </View>
@@ -23,13 +21,13 @@ export default function Register() {
       {/* EXTRA SPACE AFTER TITLE */}
       <View style={{ height: 40 }} />
 
-      {/* LOGO — MOVED DOWN */}
+      {/* LOGO */}
       <Image source={require('../assets/images/icon.png')} style={styles.logo} />
 
       {/* EXTRA SPACE BEFORE FORM */}
       <View style={{ height: 70 }} />
 
-      {/* FORM — MOVED DOWN & SPACED PERFECTLY */}
+      {/* FORM */}
       <View style={styles.form}>
         <View style={styles.inputWrapper}>
           <Feather name="user" size={20} color="#888" style={styles.inputIcon} />
@@ -38,11 +36,11 @@ export default function Register() {
 
         <View style={styles.inputWrapper}>
           <Feather name="mail" size={20} color="#888" style={styles.inputIcon} />
-          <TextInput 
-            placeholder="Email Address" 
-            style={styles.input} 
-            keyboardType="email-address" 
-            placeholderTextColor="#aaa" 
+          <TextInput
+            placeholder="Email Address"
+            style={styles.input}
+            keyboardType="email-address"
+            placeholderTextColor="#aaa"
           />
         </View>
 
@@ -56,15 +54,18 @@ export default function Register() {
           <TextInput placeholder="Confirm Password" style={styles.input} secureTextEntry placeholderTextColor="#aaa" />
         </View>
 
-        {/* REGISTER BUTTON — GOES TO PREFERENCES */}
-        <TouchableOpacity 
+        {/* REGISTER BUTTON → GO TO HOME */}
+        <TouchableOpacity
           style={styles.registerButton}
-          onPress={() => router.push('/preferences')}
+          onPress={() => {
+            // Simulate successful registration
+            router.replace('/(main)'); // No back to Register
+          }}
         >
           <Text style={styles.registerText}>Register</Text>
         </TouchableOpacity>
 
-        {/* LOGIN LINK */}
+        {/* LOGIN LINK (optional) */}
         <TouchableOpacity onPress={() => router.push('/login')}>
           <Text style={styles.loginLinkText}>
             Already have an account? <Text style={styles.loginLink}>Login</Text>

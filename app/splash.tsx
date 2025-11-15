@@ -1,3 +1,4 @@
+// app/splash.tsx
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
@@ -8,8 +9,8 @@ export default function Splash() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/'); // Navigate to (main)/index.tsx after 2s
-    }, 2000);
+      router.replace('/register'); // Force go to Register
+    }, 2000); // 2 seconds splash
 
     return () => clearTimeout(timer);
   }, [router]);
@@ -28,7 +29,22 @@ export default function Splash() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' },
-  logo: { width: 120, height: 120, borderRadius: 24, marginBottom: 30 },
-  title: { fontSize: 48, fontWeight: 'bold', color: '#007AFF', letterSpacing: 4 },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    letterSpacing: 4,
+  },
 });

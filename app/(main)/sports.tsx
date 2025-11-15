@@ -1,31 +1,31 @@
-// app/(main)/sports.tsx
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 
 export default function Sports() {
   const router = useRouter();
 
-  const sportsList = [
-    { name: 'Football', icon: 'check', type: 'feather', matches: 5, color: '#007AFF' },
-    { name: 'Basketball', icon: 'sports-basketball', type: 'material', matches: 3, color: '#FF9500' },
-    { name: 'Tennis', icon: 'cloud', type: 'feather', matches: 2, color: '#34C759' },
-    { name: 'Baseball', icon: 'play-circle-outline', type: 'ion', matches: 4, color: '#FF3B30' },
-    { name: 'Golf', icon: 'flag', type: 'feather', matches: 1, color: '#AF52DE' },
-    { name: 'Volleyball', icon: 'sports-volleyball', type: 'material', matches: 3, color: '#5856D6' },
-    { name: 'Racing', icon: 'zap', type: 'feather', matches: 6, color: '#FF2D55' },
-    { name: 'Athletics', icon: 'award', type: 'feather', matches: 0, color: '#8E8E93' },
-  ];
+  const [sports, setSports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const renderIcon = (icon: string, type: string, color: string) => {
-    if (type === 'material') {
-      return <MaterialIcons name={icon as any} size={40} color={color} />;
+  // FETCH SPORTS FROM API
+  const fetchSports = async () => {
+    try {
+      const res = await fetch('https://www.thesportsdb.com/api/v2/json/3/all_sports');
+      const data = await res.json();
+
+      setSports(data?.sports || []);
+      setLoading(false);
+    } catch (error) {
+      console.log("❌ Error fetching sports:", error);
+      setLoading(false);
     }
-    if (type === 'ion') {
-      return <Ionicons name={icon as any} size={40} color={color} />;
-    }
-    return <Feather name={icon as any} size={40} color={color} />;
   };
+
+  useEffect(() => {
+    fetchSports();
+  }, []);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -40,21 +40,26 @@ export default function Sports() {
         </TouchableOpacity>
       </View>
 
-      {/* EXTRA TOP SPACING — CLEAN & PREMIUM LOOK */}
       <View style={styles.topSpacing} />
 
-      {/* Sports Grid */}
-      <View style={styles.grid}>
-        {sportsList.map((sport, index) => (
-          <TouchableOpacity key={index} style={styles.card} activeOpacity={0.7}>
-            {renderIcon(sport.icon, sport.type, sport.color)}
-            <Text style={styles.sportName}>{sport.name}</Text>
-            <Text style={styles.matches}>
-              {sport.matches} ongoing {sport.matches === 1 ? 'match' : 'matches'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* LOADING INDICATOR */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 30 }} />
+      ) : (
+        <View style={styles.grid}>
+          {sports.map((sport: any, index) => (
+            <TouchableOpacity key={index} style={styles.card} activeOpacity={0.7}>
+              <Feather name="activity" size={40} color="#007AFF" />
+
+              <Text style={styles.sportName}>{sport.strSport}</Text>
+
+              <Text style={styles.matches}>
+                Format: {sport.strFormat || "N/A"}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       <View style={{ height: 100 }} />
     </ScrollView>
@@ -62,10 +67,8 @@ export default function Sports() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
+  container: { flex: 1, backgroundColor: '#f8f9fa' },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -75,21 +78,21 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
+
+  title: { fontSize: 24, fontWeight: 'bold', color: '#000' },
+
   topSpacing: {
-    height: 40, // ← THIS IS YOUR NEW BREATHING SPACE — ADJUST IF YOU WANT MORE/LESS
+    height: 40,
     backgroundColor: '#f8f9fa',
   },
+
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 20,
     gap: 16,
   },
+
   card: {
     width: '46%',
     backgroundColor: '#fff',
@@ -103,15 +106,19 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginBottom: 16,
   },
+
   sportName: {
     marginTop: 12,
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
+    textAlign: 'center',
   },
+
   matches: {
     marginTop: 4,
     fontSize: 12,
     color: '#666',
+    textAlign: 'center',
   },
 });
