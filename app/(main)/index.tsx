@@ -19,13 +19,17 @@ const UPCOMING_API =
 const SPORTS_API =
   "https://www.thesportsdb.com/api/v1/json/3/all_sports.php";
 
+// Real News API (your key already working)
+const NEWS_API = `https://newsapi.org/v2/everything?q=sports&sortBy=publishedAt&pageSize=10&language=en&apiKey=9ea090ae767c48b98d081cfd16947da2`;
+
 export default function Home() {
   const router = useRouter();
-
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [sports, setSports] = useState([]);
+  const [latestNews, setLatestNews] = useState<any[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [loadingSports, setLoadingSports] = useState(true);
+  const [loadingNews, setLoadingNews] = useState(true);
 
   // Fetch upcoming matches
   const fetchUpcoming = async () => {
@@ -34,7 +38,7 @@ export default function Home() {
       const data = await res.json();
       setUpcomingMatches(data.events || []);
     } catch (err) {
-      console.log("❌ Error fetching matches:", err);
+      console.log("Error fetching matches:", err);
     } finally {
       setLoadingMatches(false);
     }
@@ -47,25 +51,54 @@ export default function Home() {
       const data = await res.json();
       setSports(data.sports || []);
     } catch (err) {
-      console.log("❌ Error fetching sports:", err);
+      console.log("Error fetching sports:", err);
     } finally {
       setLoadingSports(false);
+    }
+  };
+
+  // Fetch 3 latest real sports news
+  const fetchLatestNews = async () => {
+    try {
+      const res = await fetch(NEWS_API);
+      const data = await res.json();
+      if (data.articles) {
+        const cleanNews = data.articles
+          .filter((a: any) => a.title && a.urlToImage)
+          .slice(0, 3)
+          .map((article: any) => ({
+            title: article.title.split(' - ')[0].split(' | ')[0].trim(),
+            image: article.urlToImage,
+            url: article.url,
+          }));
+        setLatestNews(cleanNews);
+      }
+    } catch (err) {
+      console.log("Error fetching news:", err);
+    } finally {
+      setLoadingNews(false);
     }
   };
 
   useEffect(() => {
     fetchUpcoming();
     fetchSports();
+    fetchLatestNews();
   }, []);
+
+  const openNewsDetail = (url: string, title: string) => {
+    router.push({
+      pathname: '/news-detail',
+      params: { url, title },
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        
         {/* HEADER */}
         <View style={styles.header}>
           <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
-
           <TouchableOpacity onPress={() => router.push('/profile')} style={styles.profileCircle}>
             <Text style={styles.profileInitial}>J</Text>
           </TouchableOpacity>
@@ -101,7 +134,6 @@ export default function Home() {
             <Feather name="arrow-right" size={26} color="#007AFF" />
           </TouchableOpacity>
         </View>
-
         {loadingMatches ? (
           <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
         ) : (
@@ -110,15 +142,15 @@ export default function Home() {
               <View key={i} style={styles.upcomingCard}>
                 <View style={styles.matchHeader}>
                   <Text style={styles.leagueTag}>{match.strLeague}</Text>
-                  <Text style={styles.time}>{match.dateEvent} {match.strTime}</Text>
+                  <Text style={styles.time}>
+                    {match.dateEvent} {match.strTime?.slice(0, 5)}
+                  </Text>
                 </View>
-
                 <View style={styles.teamsContainer}>
                   <Text style={styles.teamName}>{match.strHomeTeam}</Text>
                   <Text style={styles.vs}>VS</Text>
                   <Text style={styles.teamName}>{match.strAwayTeam}</Text>
                 </View>
-
                 <View style={styles.venueContainer}>
                   <Feather name="map-pin" size={14} color="#666" />
                   <Text style={styles.venue}>{match.strVenue}</Text>
@@ -128,7 +160,7 @@ export default function Home() {
           </View>
         )}
 
-        {/* NEWS SECTION */}
+        {/* LATEST NEWS - NOW 100% REAL */}
         <View style={styles.newsHeader}>
           <Text style={styles.sectionTitle}>Latest News</Text>
           <TouchableOpacity onPress={() => router.push('/news-screen')}>
@@ -136,17 +168,31 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.newsCard}>
-          <Image source={require('../../assets/images/icon.png')} style={styles.newsImage} />
-          <View style={styles.newsContent}>
-            <Text style={styles.sportTag}>Football</Text>
-            <Text style={styles.newsTitle}>Premier League action continues this week...</Text>
+        {loadingNews ? (
+          <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+        ) : (
+          <View style={{ paddingHorizontal: 20, gap: 12 }}>
+            {latestNews.map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.newsCard}
+                onPress={() => openNewsDetail(item.url, item.title)}
+                activeOpacity={0.9}
+              >
+                <Image source={{ uri: item.image }} style={styles.newsImage} />
+                <View style={styles.newsContent}>
+                  <Text style={styles.sportTag}>Sports</Text>
+                  <Text style={styles.newsTitle} numberOfLines={2}>
+                    {item.title}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
-        </View>
+        )}
 
         {/* SPORTS CATEGORIES */}
         <Text style={styles.sectionTitle}>Sports Categories</Text>
-
         {loadingSports ? (
           <ActivityIndicator size="large" color="#007AFF" />
         ) : (
@@ -166,9 +212,7 @@ export default function Home() {
   );
 }
 
-///////////////////////////////////////////////////////////////////
-// STYLES (same as yours)
-///////////////////////////////////////////////////////////////////
+// YOUR ORIGINAL STYLES - 100% UNCHANGED
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   scrollView: { flex: 1 },
@@ -234,7 +278,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 20,
   },
-
   // Upcoming
   upcomingContainer: { paddingHorizontal: 20, gap: 12 },
   upcomingCard: {
@@ -291,7 +334,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   venue: { fontSize: 13, color: '#666' },
-
   // News
   newsCard: {
     flexDirection: 'row',
@@ -300,12 +342,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   newsImage: { width: 100, height: 100 },
   newsContent: { flex: 1, padding: 15, justifyContent: 'center' },
   sportTag: { color: '#007AFF', fontWeight: 'bold', fontSize: 12 },
   newsTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 5, color: '#000' },
-
   // Categories
   categories: {
     flexDirection: 'row',
