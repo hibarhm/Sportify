@@ -12,10 +12,12 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from '../context/ThemeContext';
 
 export default function PlayerProfile() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { colors } = useTheme();
 
   const playerId = Array.isArray(id) ? id[0] : id;
 
@@ -124,27 +126,23 @@ export default function PlayerProfile() {
    * ============================ */
   if (loading || !player) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.center, { backgroundColor: colors.background }]}> 
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
       <ScrollView showsVerticalScrollIndicator={false}>
-        
         {/* HEADER */}
-        <View style={styles.header}>
-         <TouchableOpacity onPress={() => router.push("/favorites")}>
-  <Feather name="arrow-left" size={28} color="#000" />
-</TouchableOpacity>
-
-          <Text style={styles.title}>Player Profile</Text>
-
+        <View style={[styles.header, { backgroundColor: colors.header }]}> 
+         <TouchableOpacity onPress={() => router.push("/favorites")}> 
+            <Feather name="arrow-left" size={28} color={colors.icon} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: colors.text }]}>Player Profile</Text>
           <View style={{ width: 28 }} />
         </View>
-
         {/* PLAYER IMAGE */}
         <View style={styles.playerCard}>
           <ImageBackground
@@ -152,71 +150,63 @@ export default function PlayerProfile() {
             style={styles.playerImage}
             imageStyle={{ borderRadius: 20 }}
           />
-
           {/* ADD / REMOVE FAVORITE BUTTON */}
           <TouchableOpacity
-            style={styles.favoriteButton}
+            style={[styles.favoriteButton, { backgroundColor: colors.primary }]}
             onPress={isFavorite ? removeFromFavorites : addToFavorites}
           >
             <Feather
               name={isFavorite ? "x" : "heart"}
               size={22}
-              color="#fff"
+              color={colors.card}
             />
-            <Text style={styles.favoriteText}>
+            <Text style={[styles.favoriteText, { color: colors.card }]}> 
               {isFavorite ? "Remove Favorite" : "Add to Favorites"}
             </Text>
           </TouchableOpacity>
-
-          <Text style={styles.playerName}>{player.strPlayer}</Text>
-          <Text style={styles.team}>
+          <Text style={[styles.playerName, { color: colors.text }]}>{player.strPlayer}</Text>
+          <Text style={[styles.team, { color: colors.textSecondary }]}> 
             {player.strTeam || "No Team"} | #{player.strNumber || "?"}
           </Text>
-
-          <View style={styles.positionBadge}>
-            <Text style={styles.positionText}>
+          <View style={[styles.positionBadge, { backgroundColor: colors.primary }]}> 
+            <Text style={[styles.positionText, { color: colors.card }]}> 
               {player.strPosition || "Unknown Position"}
             </Text>
           </View>
         </View>
-
         {/* ABOUT SECTION */}
-        <Text style={styles.sectionTitle}>About</Text>
-        <View style={styles.aboutCard}>
-          <Text style={styles.aboutText}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
+        <View style={[styles.aboutCard, { backgroundColor: colors.card }]}> 
+          <Text style={[styles.aboutText, { color: colors.textSecondary }]}> 
             {player.strDescriptionEN || "No biography available."}
           </Text>
         </View>
-
         {/* BASIC INFO */}
-        <Text style={styles.sectionTitle}>Basic Info</Text>
-        <View style={styles.infoList}>
-          <Text style={styles.infoText}>Nationality: {player.strNationality}</Text>
-          <Text style={styles.infoText}>Sport: {player.strSport}</Text>
-          <Text style={styles.infoText}>Height: {player.strHeight}</Text>
-          <Text style={styles.infoText}>Weight: {player.strWeight}</Text>
-          <Text style={styles.infoText}>Born: {player.dateBorn}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Basic Info</Text>
+        <View style={[styles.infoList, { backgroundColor: colors.card }]}> 
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Nationality: {player.strNationality}</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Sport: {player.strSport}</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Height: {player.strHeight}</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Weight: {player.strWeight}</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Born: {player.dateBorn}</Text>
         </View>
-
         {/* ACHIEVEMENTS */}
-        <Text style={styles.sectionTitle}>Achievements</Text>
-
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Achievements</Text>
         {achievements.length === 0 ? (
-          <Text style={{ textAlign: "center", color: "#666", marginBottom: 20 }}>
+          <Text style={{ textAlign: "center", color: colors.textSecondary, marginBottom: 20 }}>
             No achievements found.
           </Text>
         ) : (
           achievements.map((ach, index) => (
-            <View key={index} style={styles.achievementCard}>
-              <Feather name="award" size={24} color="#007AFF" />
+            <View key={index} style={[styles.achievementCard, { backgroundColor: colors.card }]}> 
+              <Feather name="award" size={24} color={colors.primary} />
               <View style={{ marginLeft: 12 }}>
-                <Text style={styles.achievementTitle}>{ach.strHonour}</Text>
-                <Text style={styles.achievementYear}>{ach.strSeason}</Text>
+                <Text style={[styles.achievementTitle, { color: colors.text }]}>{ach.strHonour}</Text>
+                <Text style={[styles.achievementYear, { color: colors.textSecondary }]}>{ach.strSeason}</Text>
               </View>
             </View>
           ))
         )}
-
         <View style={{ height: 80 }} />
       </ScrollView>
     </View>
@@ -228,7 +218,7 @@ export default function PlayerProfile() {
 ================================ */
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
+  container: { flex: 1 },
 
   header: {
     flexDirection: "row",
@@ -238,7 +228,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
-  title: { fontSize: 24, fontWeight: "bold", color: "#000" },
+  title: { fontSize: 24, fontWeight: "bold" },
 
   playerCard: { alignItems: "center", marginBottom: 20 },
 
@@ -252,7 +242,6 @@ const styles = StyleSheet.create({
   favoriteButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#007AFF",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 25,
@@ -261,24 +250,22 @@ const styles = StyleSheet.create({
   },
 
   favoriteText: {
-    color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
   },
 
-  playerName: { fontSize: 32, fontWeight: "bold", color: "#000" },
+  playerName: { fontSize: 32, fontWeight: "bold" },
 
-  team: { fontSize: 18, color: "#666", marginTop: 4 },
+  team: { fontSize: 18, marginTop: 4 },
 
   positionBadge: {
-    backgroundColor: "#007AFF",
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
     marginTop: 8,
   },
 
-  positionText: { color: "#fff", fontWeight: "bold" },
+  positionText: { fontWeight: "bold" },
 
   sectionTitle: {
     fontSize: 22,
@@ -286,21 +273,18 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginTop: 25,
     marginBottom: 10,
-    color: "#000",
   },
 
   aboutCard: {
-    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 16,
     marginHorizontal: 20,
     elevation: 3,
   },
 
-  aboutText: { fontSize: 14, lineHeight: 20, color: "#444" },
+  aboutText: { fontSize: 14, lineHeight: 20 },
 
   infoList: {
-    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 16,
     marginHorizontal: 20,
@@ -308,10 +292,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  infoText: { fontSize: 15, color: "#333" },
+  infoText: { fontSize: 15 },
 
   achievementCard: {
-    backgroundColor: "#fff",
     marginHorizontal: 20,
     padding: 16,
     borderRadius: 16,
@@ -322,5 +305,5 @@ const styles = StyleSheet.create({
   },
 
   achievementTitle: { fontSize: 16, fontWeight: "bold" },
-  achievementYear: { fontSize: 14, color: "#666" },
+  achievementYear: { fontSize: 14 },
 });

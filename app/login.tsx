@@ -14,9 +14,11 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from './context/ThemeContext';
 
 export default function Login() {
   const router = useRouter();
+  const { colors, theme } = useTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -70,67 +72,61 @@ export default function Login() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}> 
         <View style={{ height: 60 }} />
-
         {/* TITLE ONLY — NO BACK ARROW */}
         <View style={styles.header}>
           <View style={{ width: 28 }} />
-          <Text style={styles.title}>Login</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Login</Text>
           <View style={{ width: 28 }} />
         </View>
-
         <Image source={require('../assets/images/icon.png')} style={styles.logo} />
-
-        <Text style={styles.label}>Username</Text>
-        <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: colors.text }]}>Username</Text>
+        <View style={[styles.inputContainer, { backgroundColor: colors.input }]}> 
           <TextInput
             placeholder="Enter your username"
-            style={styles.input}
+            placeholderTextColor={colors.textSecondary}
+            style={[styles.input, { color: colors.text }]}
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
             autoCorrect={false}
           />
         </View>
-
-        <Text style={styles.label}>Password</Text>
-        <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+        <View style={[styles.inputContainer, { backgroundColor: colors.input }]}> 
           <TextInput
             placeholder="Enter your password"
-            style={styles.input}
+            placeholderTextColor={colors.textSecondary}
+            style={[styles.input, { color: colors.text }]}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
           />
         </View>
-
         {/* LOGIN BUTTON */}
         <TouchableOpacity
-          style={[styles.loginButton, loading && { opacity: 0.7 }]}
+          style={[styles.loginButton, { backgroundColor: colors.primary }, loading && { opacity: 0.7 }]}
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text style={styles.loginText}>
+          <Text style={[styles.loginText, { color: colors.card }]}> 
             {loading ? 'Logging in...' : 'Login'}
           </Text>
         </TouchableOpacity>
-
         <TouchableOpacity>
-          <Text style={styles.forgotText}>Forgot Password?</Text>
+          <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot Password?</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => router.push('/register')}>
-          <Text style={styles.registerText}>
+          <Text style={[styles.registerText, { color: colors.textSecondary }]}> 
             Don't have an account?{' '}
-            <Text style={styles.registerLink}>Register</Text>
+            <Text style={[styles.registerLink, { color: colors.primary }]}>Register</Text>
           </Text>
         </TouchableOpacity>
-
         {/* Test Account Hint (Remove before submission if you want) */}
-        <View style={{ marginTop: 40, padding: 15, backgroundColor: '#f0f8ff', borderRadius: 12 }}>
-          <Text style={{ textAlign: 'center', color: '#007AFF', fontSize: 13 }}>
+        <View style={{ marginTop: 40, padding: 15, backgroundColor: theme === 'dark' ? '#23242A' : '#f0f8ff', borderRadius: 12 }}>
+          <Text style={{ textAlign: 'center', color: colors.primary, fontSize: 13 }}>
             Test Account:{'\n'}
             <Text style={{ fontWeight: 'bold' }}>Username:</Text> kminchelle{'\n'}
             <Text style={{ fontWeight: 'bold' }}>Password:</Text> 0lelplR
@@ -144,7 +140,6 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     paddingHorizontal: 30,
   },
   header: {
@@ -167,12 +162,10 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#333',
     marginBottom: 8,
     fontWeight: '600',
   },
   inputContainer: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     paddingHorizontal: 20,
     marginBottom: 20,
@@ -180,22 +173,18 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     fontSize: 16,
-    color: '#333',
   },
   loginButton: {
-    backgroundColor: '#007AFF',
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',
     marginTop: 20,
   },
   loginText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
   forgotText: {
-    color: '#007AFF',
     textAlign: 'center',
     marginTop: 20,
     fontSize: 15,
@@ -203,11 +192,9 @@ const styles = StyleSheet.create({
   registerText: {
     textAlign: 'center',
     marginTop: 30,
-    color: '#666',
     fontSize: 15,
   },
   registerLink: {
-    color: '#007AFF',
     fontWeight: 'bold',
   },
 });

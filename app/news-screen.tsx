@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTheme } from './context/ThemeContext';
 
 export default function NewsScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [news, setNews] = useState<any[]>([]);
   const [filteredNews, setFilteredNews] = useState<any[]>([]);
   const [selectedTag, setSelectedTag] = useState('All');
@@ -101,74 +103,71 @@ export default function NewsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading sports news...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}> 
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading sports news...</Text>
       </View>
     );
   }
-
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       {/* YOUR ORIGINAL HEADER - 100% UNCHANGED */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.header }]}> 
         <TouchableOpacity onPress={() => router.back()}>
-          <Feather name="arrow-left" size={28} color="#000" />
+          <Feather name="arrow-left" size={28} color={colors.icon} />
         </TouchableOpacity>
-        <Text style={styles.title}>News</Text>
+        <Text style={[styles.title, { color: colors.text }]}>News</Text>
         <TouchableOpacity>
-          <Feather name="search" size={28} color="#000" />
+          <Feather name="search" size={28} color={colors.icon} />
         </TouchableOpacity>
       </View>
-
       {/* Tags */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagsContainer}>
         {tags.map((tag) => (
           <TouchableOpacity
             key={tag}
-            style={[styles.tag, selectedTag === tag && styles.activeTag]}
+            style={[styles.tag, { backgroundColor: colors.input }, selectedTag === tag && { backgroundColor: colors.primary }]}
             onPress={() => {
               setSelectedTag(tag);
               setLoading(true);
               fetchNews(tag === 'All' ? '' : tag);
             }}
           >
-            <Text style={[styles.tagText, selectedTag === tag && styles.activeTagText]}>
+            <Text style={[styles.tagText, { color: colors.textSecondary }, selectedTag === tag && { color: colors.card, fontWeight: 'bold' }]}> 
               {tag}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
-
       {/* NEWS LIST - NOW OPENS INSIDE APP */}
       <View style={styles.newsList}>
         {filteredNews.length === 0 ? (
-          <Text style={styles.noNews}>No sports news found. Pull to refresh!</Text>
+          <Text style={[styles.noNews, { color: colors.textSecondary }]}>No sports news found. Pull to refresh!</Text>
         ) : (
           filteredNews.map((item, i) => (
             <TouchableOpacity
               key={i}
-              style={styles.newsCard}
+              style={[styles.newsCard, { backgroundColor: colors.card, shadowColor: colors.border }]}
               onPress={() => openArticleInApp(item.url, item.title)}
               activeOpacity={0.85}
             >
               <Image source={{ uri: item.image }} style={styles.newsImage} />
               <View style={styles.newsContent}>
-                <Text style={styles.newsTitle} numberOfLines={3}>
+                <Text style={[styles.newsTitle, { color: colors.text }]} numberOfLines={3}>
                   {item.title}
                 </Text>
                 <View style={styles.newsFooter}>
-                  <Text style={styles.author}>{item.author}</Text>
+                  <Text style={[styles.author, { color: colors.textSecondary }]}>{item.author}</Text>
                   <View style={styles.likes}>
                     <Feather name="heart" size={16} color="#FF3B30" />
-                    <Text style={styles.likesCount}>{item.likes}</Text>
+                    <Text style={[styles.likesCount, { color: colors.textSecondary }]}>{item.likes}</Text>
                   </View>
-                  <View style={styles.tagBadge}>
-                    <Text style={styles.tagBadgeText}>{selectedTag}</Text>
+                  <View style={[styles.tagBadge, { backgroundColor: colors.input }]}> 
+                    <Text style={[styles.tagBadgeText, { color: colors.textSecondary }]}>{selectedTag}</Text>
                   </View>
                 </View>
               </View>
@@ -176,7 +175,6 @@ export default function NewsScreen() {
           ))
         )}
       </View>
-
       <View style={{ height: 100 }} />
     </ScrollView>
   );

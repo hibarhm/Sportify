@@ -11,33 +11,34 @@ import {
 import WebView from 'react-native-webview';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useTheme } from './context/ThemeContext';
 
 export default function NewsDetail() {
   const { url, title } = useLocalSearchParams();
   const router = useRouter();
+  const { colors } = useTheme();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* Custom Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.header, borderBottomColor: colors.border }]}> 
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Feather name="arrow-left" size={28} color="#000" />
+          <Feather name="arrow-left" size={28} color={colors.icon} />
         </TouchableOpacity>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {title || 'News Article'}
         </Text>
         <View style={{ width: 40 }} />
       </View>
-
       {/* Full article inside app */}
       <WebView
         source={{ uri: url as string }}
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: colors.background }}
         startInLoadingState={true}
         renderLoading={() => (
-          <View style={styles.loading}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>Loading article...</Text>
+          <View style={[styles.loading, { backgroundColor: colors.background }]}> 
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading article...</Text>
           </View>
         )}
       />

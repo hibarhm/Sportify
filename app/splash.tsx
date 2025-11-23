@@ -3,9 +3,11 @@ import { View, Text, Image, StyleSheet } from 'react-native';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from './context/ThemeContext';
 
 export default function Splash() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -24,13 +26,13 @@ export default function Splash() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Image
         source={require('../assets/images/icon.png')}
         style={styles.logo}
         resizeMode="contain"
       />
-      <Text style={styles.title}>SPORTIFY</Text>
+      <Text style={[styles.title, { color: colors.primary }]}>SPORTIFY</Text>
     </View>
   );
 }

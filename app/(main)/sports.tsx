@@ -1,26 +1,26 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Sports() {
   const router = useRouter();
+  const { colors } = useTheme();
 
-  const [sports, setSports] = useState([]);
+  const [sports, setSports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // FETCH SPORTS FROM API
   const fetchSports = async () => {
     try {
-      const res = await fetch('https://www.thesportsdb.com/api/v2/json/3/all_sports');
+      const res = await fetch("https://www.thesportsdb.com/api/v1/json/3/all_sports.php");
       const data = await res.json();
 
       setSports(data?.sports || []);
-      setLoading(false);
     } catch (error) {
       console.log("❌ Error fetching sports:", error);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -28,46 +28,48 @@ export default function Sports() {
   }, []);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.header }]}> 
         <TouchableOpacity onPress={() => router.back()}>
-          <Feather name="arrow-left" size={28} color="#000" />
+          <Feather name="arrow-left" size={28} color={colors.icon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Sports</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Sports</Text>
         <TouchableOpacity>
-          <Feather name="search" size={28} color="#000" />
+          <Feather name="search" size={28} color={colors.icon} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.topSpacing} />
+      <View style={{ height: 20 }} />
 
-      {/* LOADING INDICATOR */}
+      {/* Loading */}
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 30 }} />
+        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
       ) : (
         <View style={styles.grid}>
           {sports.map((sport: any, index) => (
-            <TouchableOpacity key={index} style={styles.card} activeOpacity={0.7}>
-              <Feather name="activity" size={40} color="#007AFF" />
+            <TouchableOpacity key={index} style={[styles.card, { backgroundColor: colors.card }]} activeOpacity={0.8}>
+              
+              <Image
+                source={{ uri: sport.strSportThumb }}
+                style={styles.sportImage}
+              />
 
-              <Text style={styles.sportName}>{sport.strSport}</Text>
+              <Text style={[styles.sportName, { color: colors.text }]}>{sport.strSport}</Text>
+              <Text style={[styles.format, { color: colors.textSecondary }]}>{sport.strFormat}</Text>
 
-              <Text style={styles.matches}>
-                Format: {sport.strFormat || "N/A"}
-              </Text>
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      <View style={{ height: 100 }} />
+      <View style={{ height: 60 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  container: { flex: 1 },
 
   header: {
     flexDirection: 'row',
@@ -76,49 +78,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
-    backgroundColor: '#fff',
   },
 
-  title: { fontSize: 24, fontWeight: 'bold', color: '#000' },
-
-  topSpacing: {
-    height: 40,
-    backgroundColor: '#f8f9fa',
-  },
+  title: { fontSize: 24, fontWeight: 'bold' },
 
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 20,
-    gap: 16,
+    justifyContent: 'space-between',
   },
 
   card: {
     width: '46%',
-    backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 20,
+    padding: 14,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
     marginBottom: 16,
+    elevation: 2,
+  },
+
+  sportImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    resizeMode: 'cover',
+    marginBottom: 10,
+    backgroundColor: '#eee'
   },
 
   sportName: {
-    marginTop: 12,
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
     textAlign: 'center',
   },
 
-  matches: {
+  format: {
     marginTop: 4,
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
   },
 });

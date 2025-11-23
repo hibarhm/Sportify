@@ -11,9 +11,11 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTheme } from './context/ThemeContext';
 
 export default function UpcomingMatches() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -86,15 +88,14 @@ export default function UpcomingMatches() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading global matches...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}> 
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading global matches...</Text>
       </View>
     );
   }
-
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -102,46 +103,41 @@ export default function UpcomingMatches() {
         }
       >
         {/* HEADER */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.header }]}> 
           <TouchableOpacity onPress={() => router.back()}>
-            <Feather name="arrow-left" size={28} color="#000" />
+            <Feather name="arrow-left" size={28} color={colors.icon} />
           </TouchableOpacity>
-          <Text style={styles.title}>Upcoming Matches</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Upcoming Matches</Text>
           <View style={{ width: 28 }} />
         </View>
-
         {/* MATCH COUNT */}
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}> 
           {matches.length} matches coming up worldwide
         </Text>
-
         {/* MATCH LIST */}
         <View style={styles.list}>
           {matches.map((match: any, i) => (
-            <View key={i} style={styles.card}>
+            <View key={i} style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.border }]}> 
               <View style={styles.headerRow}>
-                <Text style={styles.league}>{match.leagueName || match.strLeague}</Text>
-                <Text style={styles.time}>
+                <Text style={[styles.league, { backgroundColor: colors.primary, color: colors.card }]}>{match.leagueName || match.strLeague}</Text>
+                <Text style={[styles.time, { color: colors.textSecondary }]}> 
                   {formatDate(match.dateEvent, match.strTime)} • {match.strTime?.slice(0, 5) || 'TBD'}
                 </Text>
               </View>
-
               <View style={styles.teamsRow}>
-                <Text style={styles.team} numberOfLines={1}>{match.strHomeTeam}</Text>
-                <Text style={styles.vs}>VS</Text>
-                <Text style={styles.team} numberOfLines={1}>{match.strAwayTeam}</Text>
+                <Text style={[styles.team, { color: colors.text }]} numberOfLines={1}>{match.strHomeTeam}</Text>
+                <Text style={[styles.vs, { color: colors.textSecondary }]}>VS</Text>
+                <Text style={[styles.team, { color: colors.text }]} numberOfLines={1}>{match.strAwayTeam}</Text>
               </View>
-
               <View style={styles.venueRow}>
-                <Feather name="map-pin" size={14} color="#666" />
-                <Text style={styles.venue} numberOfLines={1}>
+                <Feather name="map-pin" size={14} color={colors.textSecondary} />
+                <Text style={[styles.venue, { color: colors.textSecondary }]} numberOfLines={1}>
                   {match.strVenue || 'Venue TBD'}
                 </Text>
               </View>
             </View>
           ))}
         </View>
-
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
@@ -149,9 +145,9 @@ export default function UpcomingMatches() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa' },
-  loadingText: { marginTop: 16, fontSize: 16, color: '#666' },
+  container: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 16, fontSize: 16 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -159,17 +155,14 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#fff',
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#000' },
-  subtitle: { paddingHorizontal: 20, color: '#666', fontSize: 14, marginBottom: 10 },
+  title: { fontSize: 24, fontWeight: 'bold' },
+  subtitle: { paddingHorizontal: 20, fontSize: 14, marginBottom: 10 },
   list: { paddingHorizontal: 20, paddingTop: 10 },
   card: {
-    backgroundColor: '#fff',
     padding: 18,
     borderRadius: 16,
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -181,15 +174,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   league: {
-    backgroundColor: '#007AFF',
-    color: '#fff',
     fontSize: 11,
     fontWeight: 'bold',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  time: { fontSize: 13, color: '#666', fontWeight: '600' },
+  time: { fontSize: 13, fontWeight: '600' },
   teamsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -199,13 +190,11 @@ const styles = StyleSheet.create({
   team: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#000',
     flex: 1,
     textAlign: 'center',
   },
   vs: {
     fontSize: 15,
-    color: '#666',
     fontWeight: 'bold',
     marginHorizontal: 10,
   },
@@ -214,5 +203,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  venue: { fontSize: 13, color: '#666' },
+  venue: { fontSize: 13 },
 });
