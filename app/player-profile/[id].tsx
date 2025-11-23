@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+// app/player-profile/[id].tsx
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,10 +8,10 @@ import {
   ImageBackground,
   TouchableOpacity,
   ActivityIndicator,
-  Image
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function PlayerProfile() {
   const { id } = useLocalSearchParams();
@@ -19,38 +20,112 @@ export default function PlayerProfile() {
   const playerId = Array.isArray(id) ? id[0] : id;
 
   const [player, setPlayer] = useState<any>(null);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
 
+  /** ============================
+   * FETCH PLAYER DETAILS
+   * ============================ */
   const fetchPlayer = async () => {
     try {
       const res = await fetch(
         `https://www.thesportsdb.com/api/v1/json/3/lookupplayer.php?id=${playerId}`
       );
       const data = await res.json();
-
       setPlayer(data?.players?.[0] || null);
     } catch (error) {
-      console.log("❌ Error fetching player:", error);
+      console.log("❌ Player fetch error:", error);
     }
-    setLoading(false);
   };
 
+  /** ============================
+   * FETCH PLAYER ACHIEVEMENTS
+   * ============================ */
+  const fetchAchievements = async (playerName: string) => {
+    try {
+      const res = await fetch(
+        `https://www.thesportsdb.com/api/v1/json/3/searchhonors.php?p=${encodeURIComponent(playerName)}`
+      );
+      const data = await res.json();
+      setAchievements(data?.honors || []);
+    } catch (error) {
+      console.log("❌ Achievement error:", error);
+    }
+  };
+
+  /** ============================
+   * CHECK IF PLAYER IS FAVORITE
+   * ============================ */
+  const checkIsFavorite = async () => {
+    const stored = await AsyncStorage.getItem("favorites");
+    const list = stored ? JSON.parse(stored) : [];
+    const exists = list.some((p: any) => p.idPlayer === playerId);
+    setIsFavorite(exists);
+  };
+
+  /** ============================
+   * ADD TO FAVORITES
+   * ============================ */
+  const addToFavorites = async () => {
+    const stored = await AsyncStorage.getItem("favorites");
+    const list = stored ? JSON.parse(stored) : [];
+
+    if (!list.some((p: any) => p.idPlayer === player.idPlayer)) {
+      list.push({
+        idPlayer: player.idPlayer,
+        name: player.strPlayer,
+        thumb: player.strThumb,
+        team: player.strTeam,
+        position: player.strPosition,
+      });
+
+      await AsyncStorage.setItem("favorites", JSON.stringify(list));
+      setIsFavorite(true);
+    }
+  };
+
+  /** ============================
+   * REMOVE FROM FAVORITES
+   * ============================ */
+  const removeFromFavorites = async () => {
+    const stored = await AsyncStorage.getItem("favorites");
+    const list = stored ? JSON.parse(stored) : [];
+
+    const updated = list.filter((p: any) => p.idPlayer !== player.idPlayer);
+
+    await AsyncStorage.setItem("favorites", JSON.stringify(updated));
+    setIsFavorite(false);
+  };
+
+  /** ============================
+   * INITIAL FETCH
+   * ============================ */
   useEffect(() => {
-    fetchPlayer();
+    const loadData = async () => {
+      await fetchPlayer();
+    };
+    loadData();
   }, [playerId]);
 
-  if (loading) {
+  /** ============================
+   * FETCH ACHIEVEMENTS & CHECK FAVORITES
+   * ============================ */
+  useEffect(() => {
+    if (player) {
+      fetchAchievements(player.strPlayer);
+      checkIsFavorite();
+      setLoading(false);
+    }
+  }, [player]);
+
+  /** ============================
+   * RENDERING
+   * ============================ */
+  if (loading || !player) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
-
-  if (!player) {
-    return (
-      <View style={styles.center}>
-        <Text style={{ fontSize: 18 }}>Player not found</Text>
       </View>
     );
   }
@@ -61,10 +136,12 @@ export default function PlayerProfile() {
         
         {/* HEADER */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Feather name="arrow-left" size={28} color="#000" />
-          </TouchableOpacity>
+         <TouchableOpacity onPress={() => router.push("/favorites")}>
+  <Feather name="arrow-left" size={28} color="#000" />
+</TouchableOpacity>
+
           <Text style={styles.title}>Player Profile</Text>
+
           <View style={{ width: 28 }} />
         </View>
 
@@ -74,42 +151,71 @@ export default function PlayerProfile() {
             source={{ uri: player.strThumb || player.strCutout }}
             style={styles.playerImage}
             imageStyle={{ borderRadius: 20 }}
-            resizeMode="cover"
+          />
+
+          {/* ADD / REMOVE FAVORITE BUTTON */}
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={isFavorite ? removeFromFavorites : addToFavorites}
           >
-            <View style={styles.favoriteButton}>
-              <Feather name="heart" size={24} color="#fff" />
-            </View>
-          </ImageBackground>
+            <Feather
+              name={isFavorite ? "x" : "heart"}
+              size={22}
+              color="#fff"
+            />
+            <Text style={styles.favoriteText}>
+              {isFavorite ? "Remove Favorite" : "Add to Favorites"}
+            </Text>
+          </TouchableOpacity>
 
           <Text style={styles.playerName}>{player.strPlayer}</Text>
           <Text style={styles.team}>
-            {player.strTeam || "No Team"} | {player.strNumber || "#?"}
+            {player.strTeam || "No Team"} | #{player.strNumber || "?"}
           </Text>
 
           <View style={styles.positionBadge}>
-            <Text style={styles.positionText}>{player.strPosition || "Unknown Position"}</Text>
+            <Text style={styles.positionText}>
+              {player.strPosition || "Unknown Position"}
+            </Text>
           </View>
         </View>
 
-        {/* ABOUT */}
+        {/* ABOUT SECTION */}
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.aboutCard}>
-          {player.strDescriptionEN ? (
-            <Text style={styles.aboutText}>{player.strDescriptionEN}</Text>
-          ) : (
-            <Text style={styles.aboutText}>No biography available.</Text>
-          )}
+          <Text style={styles.aboutText}>
+            {player.strDescriptionEN || "No biography available."}
+          </Text>
         </View>
 
-        {/* QUICK STATS */}
+        {/* BASIC INFO */}
         <Text style={styles.sectionTitle}>Basic Info</Text>
         <View style={styles.infoList}>
           <Text style={styles.infoText}>Nationality: {player.strNationality}</Text>
           <Text style={styles.infoText}>Sport: {player.strSport}</Text>
           <Text style={styles.infoText}>Height: {player.strHeight}</Text>
           <Text style={styles.infoText}>Weight: {player.strWeight}</Text>
-          <Text style={styles.infoText}>Date of Birth: {player.dateBorn}</Text>
+          <Text style={styles.infoText}>Born: {player.dateBorn}</Text>
         </View>
+
+        {/* ACHIEVEMENTS */}
+        <Text style={styles.sectionTitle}>Achievements</Text>
+
+        {achievements.length === 0 ? (
+          <Text style={{ textAlign: "center", color: "#666", marginBottom: 20 }}>
+            No achievements found.
+          </Text>
+        ) : (
+          achievements.map((ach, index) => (
+            <View key={index} style={styles.achievementCard}>
+              <Feather name="award" size={24} color="#007AFF" />
+              <View style={{ marginLeft: 12 }}>
+                <Text style={styles.achievementTitle}>{ach.strHonour}</Text>
+                <Text style={styles.achievementYear}>{ach.strSeason}</Text>
+              </View>
+            </View>
+          ))
+        )}
 
         <View style={{ height: 80 }} />
       </ScrollView>
@@ -117,78 +223,104 @@ export default function PlayerProfile() {
   );
 }
 
-/* ====== STYLES ====== */
+/* ================================
+   STYLES
+================================ */
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: { flex: 1, backgroundColor: "#f8f9fa" },
+
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#000' },
-  playerCard: { alignItems: 'center', marginBottom: 20 },
-  playerImage: { width: 220, height: 280, justifyContent: 'flex-end' },
-  favoriteButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 30,
+
+  title: { fontSize: 24, fontWeight: "bold", color: "#000" },
+
+  playerCard: { alignItems: "center", marginBottom: 20 },
+
+  playerImage: {
+    width: 240,
+    height: 300,
+    borderRadius: 20,
+    marginBottom: 16,
   },
-  playerName: { fontSize: 32, fontWeight: 'bold', color: '#000', marginTop: 16 },
-  team: { fontSize: 18, color: '#666', marginTop: 4 },
+
+  favoriteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    marginBottom: 12,
+    gap: 8,
+  },
+
+  favoriteText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+
+  playerName: { fontSize: 32, fontWeight: "bold", color: "#000" },
+
+  team: { fontSize: 18, color: "#666", marginTop: 4 },
+
   positionBadge: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
     marginTop: 8,
   },
-  positionText: { color: '#fff', fontWeight: 'bold' },
+
+  positionText: { color: "#fff", fontWeight: "bold" },
 
   sectionTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
     marginLeft: 20,
-    marginTop: 20,
+    marginTop: 25,
     marginBottom: 10,
+    color: "#000",
   },
 
   aboutCard: {
-    backgroundColor: '#fff',
-    padding: 18,
+    backgroundColor: "#fff",
+    padding: 16,
     borderRadius: 16,
     marginHorizontal: 20,
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  aboutText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#444',
+    elevation: 3,
   },
 
+  aboutText: { fontSize: 14, lineHeight: 20, color: "#444" },
+
   infoList: {
-    backgroundColor: '#fff',
-    padding: 18,
+    backgroundColor: "#fff",
+    padding: 16,
     borderRadius: 16,
     marginHorizontal: 20,
-    gap: 8,
-    elevation: 4,
+    gap: 6,
+    elevation: 3,
   },
-  infoText: {
-    fontSize: 15,
-    color: '#333',
+
+  infoText: { fontSize: 15, color: "#333" },
+
+  achievementCard: {
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    elevation: 3,
   },
+
+  achievementTitle: { fontSize: 16, fontWeight: "bold" },
+  achievementYear: { fontSize: 14, color: "#666" },
 });

@@ -1,3 +1,4 @@
+// app/(main)/favorites.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -10,7 +11,8 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Favorites() {
   const router = useRouter();
@@ -20,7 +22,22 @@ export default function Favorites() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔍 Search Players API
+  // Favorite players from AsyncStorage
+  const [favoritePlayers, setFavoritePlayers] = useState<any[]>([]);
+
+  // Load favorites when page is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      loadFavorites();
+    }, [])
+  );
+
+  const loadFavorites = async () => {
+    const stored = await AsyncStorage.getItem("favorites");
+    setFavoritePlayers(stored ? JSON.parse(stored) : []);
+  };
+
+  // 🔍 Search API
   const searchPlayers = async (text: string) => {
     setQuery(text);
 
@@ -32,10 +49,9 @@ export default function Favorites() {
     setLoading(true);
     try {
       const res = await fetch(
-       `https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=${encodeURIComponent(text)}`
+        `https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=${encodeURIComponent(text)}`
       );
       const data = await res.json();
-
       setResults(data?.player || []);
     } catch (error) {
       console.log('❌ Search error:', error);
@@ -49,6 +65,7 @@ export default function Favorites() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -57,9 +74,7 @@ export default function Favorites() {
 
         <Text style={styles.title}>Favourites</Text>
 
-        <TouchableOpacity>
-          <Feather name="more-vertical" size={28} color="#000" />
-        </TouchableOpacity>
+        <View style={{ width: 28 }} />
       </View>
 
       {/* Search Input */}
@@ -74,7 +89,9 @@ export default function Favorites() {
       </View>
 
       {/* Loading Spinner */}
-      {loading && <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 10 }} />}
+      {loading && (
+        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 10 }} />
+      )}
 
       {/* Search Results */}
       {results.length > 0 && (
@@ -105,17 +122,49 @@ export default function Favorites() {
         </>
       )}
 
-      {/* Show message if no search */}
+      {/* No search results */}
       {!loading && query.length >= 2 && results.length === 0 && (
         <Text style={styles.noResult}>No players found</Text>
       )}
+
+      {/* Divider */}
+      <View style={{ height: 20 }} />
+
+      {/* Favorite Players Section */}
+      <Text style={styles.sectionTitle}>Your Saved Favorites</Text>
+
+      {favoritePlayers.length === 0 && (
+        <Text style={styles.noResult}>No favorites added yet.</Text>
+      )}
+
+      <View style={styles.list}>
+        {favoritePlayers.map((player) => (
+          <TouchableOpacity
+            key={player.idPlayer}
+            style={styles.playerCard}
+            onPress={() => openPlayerProfile(player.idPlayer)}
+          >
+            <Image
+              source={{ uri: player.thumb }}
+              style={styles.playerPhoto}
+            />
+
+            <View style={styles.playerInfo}>
+              <Text style={styles.playerName}>{player.name}</Text>
+              <Text style={styles.role}>{player.position} | {player.team}</Text>
+            </View>
+
+            <Feather name="arrow-right" size={22} color="#007AFF" />
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <View style={{ height: 100 }} />
     </ScrollView>
   );
 }
 
-/* ==== STYLES ==== */
+/* ========= STYLES ========= */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
 
@@ -145,11 +194,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
   },
 
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-  },
+  input: { flex: 1, fontSize: 16, color: '#000' },
 
   sectionTitle: {
     fontSize: 20,
@@ -160,9 +205,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 
-  list: {
-    paddingHorizontal: 20,
-  },
+  list: { paddingHorizontal: 20 },
 
   playerCard: {
     flexDirection: 'row',
@@ -190,7 +233,7 @@ const styles = StyleSheet.create({
 
   noResult: {
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 12,
     color: '#666',
     fontSize: 16,
   },

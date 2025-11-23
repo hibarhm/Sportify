@@ -1,23 +1,30 @@
-// app/splash.tsx
+// app/splash.tsx   ← Keep your beautiful design, just change the timer
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Splash() {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/register'); // Force go to Register
-    }, 2000); // 2 seconds splash
-
+    const timer = setTimeout(async () => {
+      try {
+        const user = await AsyncStorage.getItem('user');
+        if (user) {
+          router.replace('/(main)');
+        } else {
+          router.replace('/register');
+        }
+      } catch (e) {
+        router.replace('/register');
+      }
+    }, 2000);
     return () => clearTimeout(timer);
-  }, [router]);
+  }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
       <Image
         source={require('../assets/images/icon.png')}
         style={styles.logo}
